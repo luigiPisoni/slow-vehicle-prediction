@@ -1,3 +1,7 @@
 *.pt
+*.pkl
+.vscode/
+yolov8-env/
+pyrightconfig.json
 output/
 DETRAC-Images/

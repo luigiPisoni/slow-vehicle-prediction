@@ -1,0 +1,5 @@
+{
+    "dataset_dir": "./DETRAC-Images/",
+    "video_id": "MVI_20011",
+    "yolo_model": "yolov8n.pt"
+}
