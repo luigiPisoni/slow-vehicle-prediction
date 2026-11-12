@@ -56,7 +56,7 @@ def on_mouse(event, x, y, flags, param):
 cv2.namedWindow("Exclusao")
 cv2.setMouseCallback("Exclusao", on_mouse)
 
-# dois cliques = um retangulo | u = desfaz | q = termina
+# dois cliques = um retangulo,  u = desfaz, q = termina
 while True:
     cv2.imshow("Exclusao", redraw())
     k = cv2.waitKey(20) & 0xFF

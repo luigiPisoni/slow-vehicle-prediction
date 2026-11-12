@@ -22,8 +22,9 @@ image_paths = sorted(glob.glob(path + "/*.jpg"))
 # --- config (editada a mao) e saida (gerada pelo codigo) ---
 config_path = f"./config/{video_id}.json"
 output_dir = f"./output/{video_id}"
+frames_dir = f"{output_dir}/frames"
 os.makedirs("./config", exist_ok=True)
-os.makedirs(output_dir, exist_ok=True)
+os.makedirs(frames_dir, exist_ok=True)
 
 first_frame = cv2.imread(image_paths[0])
 frame_height, frame_width = first_frame.shape[:2]
@@ -55,6 +56,11 @@ def in_exclusion(cx, cy):
     # True se o ponto cai dentro (ou na borda) de qualquer retangulo
     return any(x1 <= cx <= x2 and y1 <= cy <= y2
                for x1, y1, x2, y2 in rects)
+
+def track_color(track_id):
+    n = int(track_id) if str(track_id).isdigit() else sum(ord(c) for c in str(track_id))
+    rng = np.random.default_rng(n)
+    return tuple(int(c) for c in rng.integers(40, 255, size=3))
 
 trajectories = defaultdict(list)  # tid -> [(frame_idx, cx, cy, size, cls_name)]
 frame_boxes = {}                  # frame_idx -> [(tid, x1, y1, x2, y2, cls_name)], usado depois para desenhar
@@ -96,6 +102,16 @@ for frame_idx, img_path in enumerate(image_paths):
         trajectories[track_id].append((frame_idx, cx, cy, size, cls_name))
         frame_boxes[frame_idx].append((track_id, x1, y1, x2, y2, cls_name))
 
+        color = track_color(track_id)
+        p1, p2 = (int(x1), int(y1)), (int(x2), int(y2))
+        cv2.rectangle(frame, p1, p2, color, 2)
+        label = f"{cls_name} {track_id}"
+        y_text = p1[1] - 8 if p1[1] > 16 else p1[1] + 16
+        cv2.putText(frame, label, (p1[0], y_text),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1, cv2.LINE_AA)
+
+    cv2.imwrite(os.path.join(frames_dir, os.path.basename(img_path)), frame)
+
 # salva para nao precisar rodar a deteccao de novo
 with open(f"{output_dir}/tracks.pkl", "wb") as f:
     pickle.dump({"video_id": video_id,
@@ -116,4 +132,3 @@ with open(f"{output_dir}/summary.json", "w") as f:
     json.dump(summary, f, indent=2)
 
 print(f"{len(trajectories)} trajetos salvos em {output_dir}")
-# print(summary)
